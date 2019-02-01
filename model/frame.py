@@ -23,6 +23,8 @@ def type_descript(window):
         if fr not in frame_setting:
             frame_setting[fr] = {}
         frame_setting[fr]['window_type'] = window.__name__
+        if 'snapshot_get' not in frame_setting[fr]:
+            frame_setting[fr]['snapshot_get'] = lambda:None
         return fr
     return _
 
@@ -47,14 +49,22 @@ def test_window(setting):
     pane.add(tempfr2,weight=1)
     pane.grid(row=0,column=0,sticky=tkinter.NSEW)
 
-    # 将控件的地址回传的一种方法，
-    # 在使用tab创建窗口的时候会默认将这里传入 frame_setting 的参数
-    # pop 给全局参数 nb_names 里面，方便于处理控件调度
-    frame_setting[fr] = {}
-    frame_setting[fr]['test'] = tx1
 
-    # 后续考虑了一下，我觉得，以每个控件单元进行初始化最为合适
-    # 因为这样也方便后续的设计，在框架生成函数内部也需要实现控件的初始化处理
+    # 使用setting 初始化
+    def snapshot_set(setting):
+        tx1.delete(0.,tkinter.END)
+        tx1.insert(0.,setting.get('tx1'))
+        tx2.delete(0.,tkinter.END)
+        tx2.insert(0.,setting.get('tx2'))
+    # 获取快照setting
+    def snapshot_get():
+        return {
+            'tx1':tx1.get(0.,tkinter.END),
+            'tx2':tx2.get(0.,tkinter.END),
+        }
+    if setting: snapshot_set(setting)
+    frame_setting[fr] = {}
+    frame_setting[fr]['snapshot_get'] = snapshot_get
 
     return fr
 

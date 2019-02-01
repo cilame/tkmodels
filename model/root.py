@@ -105,10 +105,11 @@ def bing_change_window_siz():
             root.winfo_x(),
             root.winfo_y(), )
     root.bind('<Configure>',lambda e:change_siz())
-bing_change_window_siz()
 
 # 初始化窗口设置
 def init_window_from_config():
+    root.title(config['title'])
+    root.geometry(config['size'])
     from .tab import nb, create_new_tab
     from .frame import frame_setting, type_descript, helper_window
     fr_funcs = frame_setting['window_all_types']
@@ -134,4 +135,5 @@ def init_window_from_config():
 
 
 get_config_from_homepath() # 加载持久化配置到config参数
-init_window_from_config() # 通过config参数初始化窗口
+init_window_from_config() # 通过config参数初始化窗口（包括size）
+bing_change_window_siz() # size的绑定要在size的初始化之后

@@ -45,6 +45,5 @@ bind_ctl_key(save, 's')
 
 
 
-root.title(config['title'])
-root.geometry(config['size'])
+
 root.mainloop()
