@@ -9,8 +9,10 @@ import traceback
 print('coding:',sys.stdout.encoding)
 
 for i in os.listdir(p):
-	if i != 'test':
-		try:
-			exec('from {} import main'.format(i))
-		except:
-			traceback.print_exc()
+    if i != 'test':
+        try:
+            mainpath = os.path.join(p,i,'main.py')
+            if os.path.exists(mainpath):
+                exec('from {} import main'.format(i))
+        except:
+            traceback.print_exc()

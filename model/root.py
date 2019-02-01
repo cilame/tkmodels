@@ -2,11 +2,14 @@ import os
 import tkinter
 import json
 import traceback
+import tkinter.messagebox
+
 root = tkinter.Tk()
 
-# 以“英文句号+文档名字”作为配置文件的名字，这样方便后续改文档名字就直接能用
-DEFAULTS_TITLE = os.path.split(os.path.split(__file__)[0])[1]
-DEFAULTS_NAME = '.{}'.format(DEFAULTS_TITLE)
+from .defaults import (
+    DEFAULTS_TITLE,
+    DEFAULTS_NAME,
+)
 
 '''
 #20190117
@@ -14,24 +17,24 @@ DEFAULTS_NAME = '.{}'.format(DEFAULTS_TITLE)
     # 2 需要的配置数据
     # 初步定下下面的数据结构
     {
-        siz:'500x300'
-        set:{
-            tab_name1:{setting}
-            tab_name2:{setting}
-            tab_name3:{setting}
+        title:title
+        size:'600x600+200+200'
+        setting:{
+            tabname1:{setting}
+            tabname2:{setting}
+            tabname3:{setting}
         }
+        focus:focus
     }
     关于 setting的数据结构
     {
         type:request # 这里要有多种类型的配置，为了方便处理保存和恢复选择用的函数
-        set:{
-            # 不同类型的配置结构不一样
-            # 以 request为例，
-            method: GET/POST/...
-            url: url
-            headers: headers
-            body: body
-            # 也有帮助标签
+        setting:{
+            nb_setting:{
+                tabname:{setting:..., window_type:...}
+                tabname:{setting:..., window_type:...}
+                tabname:{setting:..., window_type:...}
+            }
         }
     }
 '''
@@ -40,7 +43,9 @@ DEFAULTS_NAME = '.{}'.format(DEFAULTS_TITLE)
 config = {
     'title':DEFAULTS_TITLE,
     'size':'600x600+200+200',
-    'set':{},
+    'setting':{
+        'nb_setting':{},
+    },
     'focus':None,
 }
 
@@ -75,12 +80,21 @@ def set_config_from_homepath():
         traceback.print_exc()
 
 # 装饰器，让被装饰函数在执行后进行配置保存的操作
-def save(func):
-    def _save(*a,**kw):
-        v = func(*a,**kw)
-        set_config_from_homepath()
-        return v
-    return _save
+# 也可以是直接使用的函数，默认不写参数则直接进行配置保存的操作
+def save(func=None):
+    from .tab import notebook_save
+    if func is None:
+        toggle = tkinter.messagebox.askokcancel('是否保存','确定保存当前全部配置信息吗？')
+        if toggle:
+            notebook_save(curr_1_or_all_2=2) # 主动保存将保存全部
+            set_config_from_homepath()
+    else:
+        def _save(*a,**kw):
+            notebook_save(curr_1_or_all_2=1) # 被动保存将只保存当前tab信息
+            v = func(*a,**kw)
+            set_config_from_homepath()
+            return v
+        return _save
 
 # 绑定窗口位置大小信息与全局参数 config 的联系
 def bing_change_window_siz():
@@ -91,7 +105,33 @@ def bing_change_window_siz():
             root.winfo_x(),
             root.winfo_y(), )
     root.bind('<Configure>',lambda e:change_siz())
-
-# 加载配置参数到全局参数 config 中，如没有，则使用默认配置
-get_config_from_homepath()
 bing_change_window_siz()
+
+# 初始化窗口设置
+def init_window_from_config():
+    from .tab import nb, create_new_tab
+    from .frame import frame_setting, type_descript, helper_window
+    fr_funcs = frame_setting['window_all_types']
+    it = config['setting']['nb_setting'].items()
+    if it:
+        focus = None
+        for tabname,setting in it:
+            if tabname != config['focus']:
+                in_sett = setting['setting']
+                winname = setting['window']
+                window = type_descript(fr_funcs[winname])
+                create_new_tab(window,in_sett,tabname)
+            else:
+                focus = tabname,setting
+        if focus:
+            tabname,setting = focus # 保存tab焦点
+            in_sett = setting['setting']
+            winname = setting['window']
+            window = type_descript(fr_funcs[winname])
+            create_new_tab(window,in_sett,tabname)
+    else:
+        create_new_tab(helper_window,prefix='帮助')
+
+
+get_config_from_homepath() # 加载持久化配置到config参数
+init_window_from_config() # 通过config参数初始化窗口

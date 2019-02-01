@@ -5,6 +5,8 @@ from tkinter import ttk
 from tkinter import scrolledtext
 from tkinter.font import Font
 
+from .defaults import DEFAULTS_HELP
+
 Text        = scrolledtext.ScrolledText
 Label       = ttk.Label
 Button      = ttk.Button
@@ -12,9 +14,10 @@ Combobox    = ttk.Combobox
 Frame       = tkinter.Frame
 PanedWindow = ttk.Panedwindow
 
-frame_setting = {}
+frame_setting = {'window_all_types':{}}
 
 def type_descript(window):
+    frame_setting['window_all_types'][window.__name__] = window
     def _(setting):
         fr = window(setting)
         if fr not in frame_setting:
@@ -50,6 +53,9 @@ def test_window(setting):
     frame_setting[fr] = {}
     frame_setting[fr]['test'] = tx1
 
+    # 后续考虑了一下，我觉得，以每个控件单元进行初始化最为合适
+    # 因为这样也方便后续的设计，在框架生成函数内部也需要实现控件的初始化处理
+
     return fr
 
 
@@ -62,8 +68,8 @@ def test_window(setting):
 # 直接修饰完 frame 之后直接返回这个 frame 实例即可
 # 在其他地方会修改这个实例的绑定对象让其绑定到 tab 上去
 # 3
-# 对于每个窗口的控件地址可以以示例的方式传到
-# 全局参数 nb_names 里面，绑定窗口的 tab_id
+# 对于每个窗口的控件地址可以以示例的方式传到 frame_setting
+# frame_setting 会在创建窗口的时候传递到全局参数 nb_names 里面，绑定窗口的 tab_id
 # 这样的好处就是方便通过 tab_id 来处理窗口的内容
 # 也方便对各种类型的窗口内容进行调度
 # 4
@@ -74,17 +80,18 @@ def test_window(setting):
 
 
 # 帮助文档
+@type_descript
 def helper_window(setting):
     fr = Frame()
     ft = Font(family='Consolas',size=10)
-    hp = '''
-简单的文档扩展
-'''
+    hp = DEFAULTS_HELP
     temp_fr1 = Frame(fr)
     lb1 = ttk.Label(temp_fr1,font=ft,text=hp)
     lb1.pack()
     temp_fr1.pack()
     return fr
+
+
 
 if __name__ == '__main__':
     root = tkinter.Tk()
