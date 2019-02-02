@@ -25,6 +25,8 @@ def type_descript(window):
         frame_setting[fr]['window_type'] = window.__name__
         if 'snapshot_get' not in frame_setting[fr]:
             frame_setting[fr]['snapshot_get'] = lambda:None
+        if 'snapshot_set' in frame_setting[fr]:
+            frame_setting[fr]['snapshot_set'](setting)
         return fr
     return _
 
@@ -37,19 +39,33 @@ def test_window(setting):
     fr.columnconfigure(0,weight=1)
 
     pane = PanedWindow(fr,orient=tkinter.HORIZONTAL)
-    tempfr1 = Frame(pane)
-    tempfr2 = Frame(pane)
-    tempfr1.grid(row=0,column=0,sticky=tkinter.NSEW)
-    tempfr2.grid(row=0,column=0,sticky=tkinter.NSEW)
-    tx1 = Text(tempfr1)
+    tempfr1 = Frame(pane,width=12,height=123)
+    tempfr2 = Frame(pane,width=12,height=123)
+
+    tx1 = Text(tempfr1)# 这里使用的长宽都是以字符的长宽来定的，注意
     tx2 = Text(tempfr2)
     tx1.pack(fill=tkinter.BOTH,expand=True)
     tx2.pack(fill=tkinter.BOTH,expand=True)
-    pane.add(tempfr1,weight=4)
+    tempfr1.pack(fill=tkinter.BOTH,expand=True)
+    tempfr2.pack(fill=tkinter.BOTH,expand=True)
+    pane.add(tempfr1,weight=10)
     pane.add(tempfr2,weight=1)
-    pane.grid(row=0,column=0,sticky=tkinter.NSEW)
+    pane.pack(fill=tkinter.BOTH,expand=True)
+    #tx1['width'] = 10#通过 [] 来修改原本的参数
+    #tx1['width'],tx1['height'] 一个默认的Text的w和h为字符长款的 w:80, h:24
+    # 不过对于目前的窗口并不能做到动态获取窗口信息，很难受。
 
 
+    # ===== 一个tab窗口的开发扩展 ======
+    # 如果需要让这个tab窗口能够存储当前快照信息的话（方便用户恢复使用状态）
+    # 那么就需要通过下面的方式来实现那些窗口信息需要存储
+    # 1 需要实现一个 snapshot_get() 函数来处理快照信息的获取
+    #   并且这也是提供给功能函数使用的一个接口，方便功能函数的开发
+    # 2 需要实现一个 snapshot_set(setting) 函数来处理快照信息的初始化
+    # 3 注意：需要在定义两个函数的后面加上几句固定的代码
+    # frame_setting[fr] = {}
+    # frame_setting[fr]['snapshot_get'] = snapshot_get
+    # frame_setting[fr]['snapshot_set'] = snapshot_set
     # 使用setting 初始化
     def snapshot_set(setting):
         tx1.delete(0.,tkinter.END)
@@ -62,31 +78,17 @@ def test_window(setting):
             'tx1':tx1.get(0.,tkinter.END),
             'tx2':tx2.get(0.,tkinter.END),
         }
-    if setting: snapshot_set(setting)
     frame_setting[fr] = {}
     frame_setting[fr]['snapshot_get'] = snapshot_get
+    frame_setting[fr]['snapshot_set'] = snapshot_set
 
     return fr
 
 
-# 1
-# 对于每个窗口的设计都需要考虑数据的初始化，
-# 每个创建窗口的函数参数都需要一个初始化参数 setting
-# 主要是方便扩展恢复状态的功能
-# 2
-# 对于每个窗口都只需要一个空master的 Frame() 来存放内容
-# 直接修饰完 frame 之后直接返回这个 frame 实例即可
-# 在其他地方会修改这个实例的绑定对象让其绑定到 tab 上去
-# 3
-# 对于每个窗口的控件地址可以以示例的方式传到 frame_setting
-# frame_setting 会在创建窗口的时候传递到全局参数 nb_names 里面，绑定窗口的 tab_id
-# 这样的好处就是方便通过 tab_id 来处理窗口的内容
-# 也方便对各种类型的窗口内容进行调度
-# 4
-# 对于每个窗口创建函数都需要加 type_descript 装饰器
-# 因为为了后续对于不同类型窗口进行不同的类型的处理
-
-
+# 创建tab窗口需要注意的地方
+# 每个创建的窗口需要返回一个 Frame 对象
+# 每个创建窗口的函数都需要通过装饰器 type_descript 进行装饰
+# 如果有需要考虑窗口快照存储就按照示例上的快照写法进行处理即可
 
 
 # 帮助文档

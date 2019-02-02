@@ -113,6 +113,7 @@ def init_window_from_config():
     from .tab import nb, create_new_tab
     from .frame import frame_setting, type_descript, helper_window
     fr_funcs = frame_setting['window_all_types']
+    # 恢复tab配置的快照处理
     it = config['setting']['nb_setting'].items()
     if it:
         focus = None
