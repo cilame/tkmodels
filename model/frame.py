@@ -26,7 +26,8 @@ def type_descript(window):
         if 'snapshot_get' not in frame_setting[fr]:
             frame_setting[fr]['snapshot_get'] = lambda:None
         if 'snapshot_set' in frame_setting[fr]:
-            frame_setting[fr]['snapshot_set'](setting)
+            if setting is not None:
+                frame_setting[fr]['snapshot_set'](setting)
         return fr
     return _
 
