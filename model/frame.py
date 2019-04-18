@@ -6,6 +6,10 @@ from tkinter import scrolledtext
 from tkinter.font import Font
 
 from .defaults import DEFAULTS_HELP
+from .combinekey import (
+    bind_alt_key_fr,
+    bind_ctl_key_fr,
+)
 
 Text        = scrolledtext.ScrolledText
 Label       = ttk.Label
@@ -49,7 +53,7 @@ def test_window(setting):
     tx2.pack(fill=tkinter.BOTH,expand=True)
     tempfr1.pack(fill=tkinter.BOTH,expand=True)
     tempfr2.pack(fill=tkinter.BOTH,expand=True)
-    pane.add(tempfr1,weight=10)
+    pane.add(tempfr1,weight=1)
     pane.add(tempfr2,weight=1)
     pane.pack(fill=tkinter.BOTH,expand=True)
     #tx1['width'] = 10#通过 [] 来修改原本的参数
@@ -79,9 +83,23 @@ def test_window(setting):
             'tx1':tx1.get(0.,tkinter.END),
             'tx2':tx2.get(0.,tkinter.END),
         }
+
+    # 被绑定的键盘操作函数
+    def bind_func(): 
+        tx2.insert(0.,'12312312312')
+
+    bind_alt_key_fr(bind_func,  'd') 
+    # 绑定 ctl+d 功能键，不同frame的功能键重复无所谓，但是需要保证不与全局功能键重复
+    # 使用该绑定函数需要非常注意
+    # 因为该函数使用了函数栈寻址功能自动寻找fr，所以需要严格保证：
+    # 1/ 首先需要 fr = Frame() 必然存在
+    # 2/ 其次就是在该函数环境中能够找到 fr 这个变量，经量放在与fr同级的环境里即可
+    # 3/ 该函数有局限性，只能操作本窗口内的数据变化，主要就是这样
+    # 虽然局限性很大，但是在窗口内的操作直接就能绑定，就很方便
+
     frame_setting[fr] = {}
-    frame_setting[fr]['snapshot_get'] = snapshot_get
-    frame_setting[fr]['snapshot_set'] = snapshot_set
+    frame_setting[fr]['snapshot_get']  = snapshot_get
+    frame_setting[fr]['snapshot_set']  = snapshot_set
 
     return fr
 

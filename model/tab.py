@@ -52,14 +52,15 @@ def create_new_tab(window=None,setting=None,prefix='窗口'):
         nb_names[tab_id]['window_type']    = fr_set.pop('window_type')
         nb_names[tab_id]['window_setting'] = fr_set
         nb_names[tab_id]['window_creater'] = window
+        nb_names[tab_id]['window_frame']   = frame
         return tab_id
     nums = []
     for val in nb_names.values():
-        v = re.findall('{}\d+'.format(prefix), val['tabname'])
+        v = re.findall(r'{}\d+'.format(prefix), val['tabname'])
         if val['tabname'] == prefix:
             nums.append(0)
         if v:
-            num = int(re.findall('{}(\d+)'.format(prefix), v[0])[0])
+            num = int(re.findall(r'{}(\d+)'.format(prefix), v[0])[0])
             nums.append(num)
     idx = 0
     while True:
@@ -72,6 +73,10 @@ def create_new_tab(window=None,setting=None,prefix='窗口'):
     winf = window(setting)
     nb.select(bind_frame(winf,name))
     return winf
+
+def get_cur_frame():
+    _select = nb.select()
+    return nb_names[_select]['window_frame']
 
 # 获取当前标签和 frame_setting
 def get_cur_name_setting():
@@ -94,7 +99,9 @@ def change_tab_name():
         allname = [val['tabname'] for val in nb_names.values()]
         while True:
             if cname in allname:
-                cname = askstring('修改标签','新的标签名字不能重复')
+                cname = askstring('修改标签',
+                                  '新的标签名字不能与旧标签重复',
+                                  initialvalue=cname)
                 if not cname or not cname.strip():
                     return
             else:

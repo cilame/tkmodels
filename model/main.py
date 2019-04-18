@@ -28,11 +28,11 @@ bind_menu(a, '测试1')
 bind_menu(b, '测试2')
 
 
-
-bind_ctl_key(delete_curr_tab, 'w')
-bind_ctl_key(undelete_tab, 'w', shift=True)
-bind_ctl_key(change_tab_name, 'e')
-bind_ctl_key(save, 's')
+# 基础绑定功能，这些功能都是这个框架的立足之本
+bind_ctl_key(delete_curr_tab,   'w')
+bind_ctl_key(undelete_tab,      'w', shift=True)
+bind_ctl_key(change_tab_name,   'e')
+bind_ctl_key(save,              's')
 
 
 
